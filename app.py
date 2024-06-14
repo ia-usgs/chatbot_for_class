@@ -1,144 +1,113 @@
-import tkinter as tk
-from tkinter import ttk
+import sys
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QLineEdit, QPushButton, QGridLayout
+from PyQt5.QtCore import Qt
+import hashlib
+import getpass
+import os
+import bcrypt
+from PyQt5.QtGui import QFont
 
-class ChatbotGUI(tk.Tk):
+class ChatbotGUI(QWidget):
     def __init__(self):
         super().__init__()
-        self.title("Financial Chatbot")
-        self.geometry("800x600")
-        
-        # Initialize frames for each screen
-        self.frames = {}
-        for F in (LoginScreen, DashboardScreen, BudgetManagementScreen, ExpenseTrackingScreen, 
-                  SavingsGoalsScreen, ReportsScreen, UserSettingsScreen, AdminDashboardScreen, 
-                  UserManagementScreen, SystemConfigurationScreen):
-            page_name = F.__name__
-            frame = F(parent=self, controller=self)
-            self.frames[page_name] = frame
-            frame.grid(row=0, column=0, sticky="nsew")
-        
-        self.show_frame("LoginScreen")
-    
-    def show_frame(self, page_name):
-        frame = self.frames[page_name]
-        frame.tkraise()
+        self.initUI()
 
-class LoginScreen(tk.Frame):
-    def __init__(self, parent, controller):
-        super().__init__(parent)
-        self.controller = controller
-        self.create_widgets()
-        
-    def create_widgets(self):
-        tk.Label(self, text="Username").grid(row=0, column=0)
-        self.username = tk.Entry(self)
-        self.username.grid(row=0, column=1)
-        
-        tk.Label(self, text="Password").grid(row=1, column=0)
-        self.password = tk.Entry(self, show="*")
-        self.password.grid(row=1, column=1)
-        
-        tk.Button(self, text="Login", command=self.login).grid(row=2, column=0, columnspan=2)
-        tk.Button(self, text="Register", command=lambda: self.controller.show_frame("RegisterScreen")).grid(row=3, column=0, columnspan=2)
-    
+    def initUI(self):
+        self.setWindowTitle("Financial Chatbot")
+        self.setGeometry(300, 300, 800, 600)
+        self.createWidgets()
+
+    def createWidgets(self):
+        grid = QGridLayout()
+        self.setLayout(grid)
+
+        grid.addWidget(QLabel("Username"), 0, 0)
+        self.username = QLineEdit()
+        grid.addWidget(self.username, 0, 1)
+
+        grid.addWidget(QLabel("Password"), 1, 0)
+        self.password = QLineEdit()
+        self.password.setEchoMode(QLineEdit.Password)
+        grid.addWidget(self.password, 1, 1)
+
+        loginButton = QPushButton("Login")
+        loginButton.clicked.connect(self.login)
+        grid.addWidget(loginButton, 2, 0, 1, 2)
+
+        registerButton = QPushButton("Register")
+        registerButton.clicked.connect(lambda: self.showPage("RegisterScreen"))
+        grid.addWidget(registerButton, 3, 0, 1, 2)
+
     def login(self):
-        # Placeholder for login logic
-        self.controller.show_frame("DashboardScreen")
+        username = self.username.text()
+        password = self.password.text()
+        # Generate the hash for the password
+        hashed_password = bcrypt.hashpw(b'123', bcrypt.gensalt())
 
-class DashboardScreen(tk.Frame):
-    def __init__(self, parent, controller):
-        super().__init__(parent)
-        self.controller = controller
-        self.create_widgets()
-        
-    def create_widgets(self):
-        tk.Label(self, text="Dashboard", font=("Helvetica", 16)).pack(pady=10)
-        tk.Button(self, text="Budget Management", command=lambda: self.controller.show_frame("BudgetManagementScreen")).pack(pady=5)
-        tk.Button(self, text="Expense Tracking", command=lambda: self.controller.show_frame("ExpenseTrackingScreen")).pack(pady=5)
-        tk.Button(self, text="Savings Goals", command=lambda: self.controller.show_frame("SavingsGoalsScreen")).pack(pady=5)
-        tk.Button(self, text="Reports", command=lambda: self.controller.show_frame("ReportsScreen")).pack(pady=5)
-        tk.Button(self, text="Settings", command=lambda: self.controller.show_frame("UserSettingsScreen")).pack(pady=5)
+        # Check the password
+        if username == "admin" and bcrypt.checkpw(password.encode('utf-8'), hashed_password):
+            self.showPage("DashboardScreen")
+        else:
+            print("Invalid username or password")
 
-class BudgetManagementScreen(tk.Frame):
-    def __init__(self, parent, controller):
-        super().__init__(parent)
-        self.controller = controller
-        self.create_widgets()
-        
-    def create_widgets(self):
-        tk.Label(self, text="Budget Management", font=("Helvetica", 16)).pack(pady=10)
-        # Add more widgets for budget management
+    def showPage(self, pageName):
+        if pageName == "DashboardScreen":
+            self.dashboard = DashboardScreen()
+            self.dashboard.show()
+        #elif pageName == "RegisterScreen":
+            #self.register = RegisterScreen()
+            #self.register.show()
 
-class ExpenseTrackingScreen(tk.Frame):
-    def __init__(self, parent, controller):
-        super().__init__(parent)
-        self.controller = controller
-        self.create_widgets()
-        
-    def create_widgets(self):
-        tk.Label(self, text="Expense Tracking", font=("Helvetica", 16)).pack(pady=10)
-        # Add more widgets for expense tracking
+class DashboardScreen(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.initUI()
 
-class SavingsGoalsScreen(tk.Frame):
-    def __init__(self, parent, controller):
-        super().__init__(parent)
-        self.controller = controller
-        self.create_widgets()
-        
-    def create_widgets(self):
-        tk.Label(self, text="Savings Goals", font=("Helvetica", 16)).pack(pady=10)
-        # Add more widgets for savings goals
+    def initUI(self):
+        self.setWindowTitle("Dashboard")
+        self.setGeometry(300, 300, 800, 600)
+        self.createWidgets()
 
-class ReportsScreen(tk.Frame):
-    def __init__(self, parent, controller):
-        super().__init__(parent)
-        self.controller = controller
-        self.create_widgets()
-        
-    def create_widgets(self):
-        tk.Label(self, text="Reports", font=("Helvetica", 16)).pack(pady=10)
-        # Add more widgets for reports
+    def createWidgets(self):
+        grid = QGridLayout()
+        self.setLayout(grid)
 
-class UserSettingsScreen(tk.Frame):
-    def __init__(self, parent, controller):
-        super().__init__(parent)
-        self.controller = controller
-        self.create_widgets()
-        
-    def create_widgets(self):
-        tk.Label(self, text="User Settings", font=("Helvetica", 16)).pack(pady=10)
-        # Add more widgets for user settings
+        label = QLabel("Dashboard")
+        label.setFont(QFont("Helvetica", 16))
+        grid.addWidget(label, 0, 0)
 
-class AdminDashboardScreen(tk.Frame):
-    def __init__(self, parent, controller):
-        super().__init__(parent)
-        self.controller = controller
-        self.create_widgets()
-        
-    def create_widgets(self):
-        tk.Label(self, text="Admin Dashboard", font=("Helvetica", 16)).pack(pady=10)
-        # Add more widgets for admin dashboard
+        button = QPushButton("Budget Management")
+        button.clicked.connect(lambda: self.showPage("BudgetManagementScreen"))
+        grid.addWidget(button, 1, 0)
 
-class UserManagementScreen(tk.Frame):
-    def __init__(self, parent, controller):
-        super().__init__(parent)
-        self.controller = controller
-        self.create_widgets()
-        
-    def create_widgets(self):
-        tk.Label(self, text="User Management", font=("Helvetica", 16)).pack(pady=10)
-        # Add more widgets for user management
+        button = QPushButton("Expense Tracking")
+        button.clicked.connect(lambda: self.showPage("ExpenseTrackingScreen"))
+        grid.addWidget(button, 2, 0)
 
-class SystemConfigurationScreen(tk.Frame):
-    def __init__(self, parent, controller):
-        super().__init__(parent)
-        self.controller = controller
-        self.create_widgets()
-        
-    def create_widgets(self):
-        tk.Label(self, text="System Configuration", font=("Helvetica", 16)).pack(pady=10)
-        # Add more widgets for system configuration
+        button = QPushButton("Savings Goals")
+        button.clicked.connect(lambda: self.showPage("SavingsGoalsScreen"))
+        grid.addWidget(button, 3, 0)
+
+        button = QPushButton("Reports")
+        button.clicked.connect(lambda: self.showPage("ReportsScreen"))
+        grid.addWidget(button, 4, 0)
+
+        button = QPushButton("Settings")
+        button.clicked.connect(lambda: self.showPage("UserSettingsScreen"))
+        grid.addWidget(button, 5, 0)
+
+    def showPage(self, pageName):
+        #if pageName == "BudgetManagementScreen":
+            #self.budget_management = BudgetManagementScreen()
+            #self.budget_management.show()
+        #elif pageName == "ExpenseTrackingScreen":
+           # self.expense_tracking = ExpenseTrackingScreen()
+            #self.expense_tracking.show()
+            pass
 
 if __name__ == "__main__":
-    app = ChatbotGUI()
-    app.mainloop()
+    app = QApplication(sys.argv)
+    app.setStyle('Fusion')
+    gui = ChatbotGUI()
+    gui.show()
+    sys.exit(app.exec_())
