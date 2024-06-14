@@ -5,6 +5,7 @@ import bcrypt
 from PyQt5.QtGui import QFont
 from dashboard_screen import DashboardScreen
 from register_screen import RegisterScreen
+import sqlite3
 
 class ChatbotGUI(QWidget):
     def __init__(self):
@@ -40,16 +41,29 @@ class ChatbotGUI(QWidget):
     def login(self):
         username = self.username.text()
         password = self.password.text()
-        # Generate the hash for the password
-        hashed_password = bcrypt.hashpw(b'123', bcrypt.gensalt())
+        # Connect to the database
+        self.conn = sqlite3.connect('users.db')
+        self.cursor = self.conn.cursor()
 
-        # Check the password. This will need be to be replaced with either a SQLlite database for storing hashed passwords or another type like Postgresql
-        if username == "admin" and bcrypt.checkpw(password.encode('utf-8'), hashed_password):
-            self.showPage("DashboardScreen")
-            self.close() # this makes it so that it closes the window
-            
+        # Query the database for the username
+        self.cursor.execute('''
+            SELECT * FROM budget
+            WHERE username = ?
+        ''', (username,))
+
+        # Fetch the result
+        result = self.cursor.fetchone()
+
+        # Check if the username exists in the database
+        if result:
+            # Check the password
+            if bcrypt.checkpw(password.encode('utf-8'), result[1]):
+                self.showPage("DashboardScreen")
+                self.close()
+            else:
+                print("Invalid password")
         else:
-            print("Invalid username or password")
+            print("Invalid username")
 
     def showPage(self, pageName):
         if pageName == "DashboardScreen":

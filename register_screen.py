@@ -1,6 +1,7 @@
 from PyQt5.QtWidgets import QWidget, QGridLayout, QLabel, QLineEdit, QPushButton
 from PyQt5.QtGui import QFont
 from dashboard_screen import DashboardScreen
+import sqlite3
 
 class RegisterScreen(QWidget):
     def __init__(self):
@@ -29,10 +30,37 @@ class RegisterScreen(QWidget):
         registerButton.clicked.connect(lambda: self.showPage("DashboardScreen"))
         grid.addWidget(registerButton, 2, 0, 1, 2)
 
+        registerButton.clicked.connect(self.save_data)
+
+        # Connect to the database
+        self.conn = sqlite3.connect('users.db')
+        self.cursor = self.conn.cursor()
+        
+        # Create the table if it doesn't exist
+        self.cursor.execute('''
+            CREATE TABLE IF NOT EXISTS budget
+            (username REAL, password REAL)
+        ''')
+        
+    def save_data(self):
+        username = str(self.username.text())
+        password = str(self.password.text())
+
+        # Insert the data into the database
+        self.cursor.execute('''
+            INSERT INTO budget (username, password)
+            VALUES (?, ?)
+        ''', (username, password))
+        self.conn.commit()
+        
+        # Clear the text fields
+        self.username.clear()
+        self.password.clear()
+
+    
+
     def showPage(self, pageName):
         if pageName == "DashboardScreen":
             self.dashboard = DashboardScreen()
             self.dashboard.show()
             self.close()
-
-    
