@@ -47,6 +47,8 @@ class ChatbotGUI(QWidget):
         # Check the password
         if username == "admin" and bcrypt.checkpw(password.encode('utf-8'), hashed_password):
             self.showPage("DashboardScreen")
+            self.close() # this makes it so that it closes the window
+            
         else:
             print("Invalid username or password")
 
