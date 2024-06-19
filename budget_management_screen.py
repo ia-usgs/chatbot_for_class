@@ -1,7 +1,8 @@
-from PyQt5.QtWidgets import QWidget, QGridLayout, QLabel, QPushButton
+from PyQt5.QtWidgets import QWidget, QGridLayout, QLabel, QPushButton, QMessageBox
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import QLineEdit
 import sqlite3
+import csv
 
 class BudgetManagementScreen(QWidget):
     def __init__(self):
@@ -45,23 +46,24 @@ class BudgetManagementScreen(QWidget):
             CREATE TABLE IF NOT EXISTS budget
             (income REAL, expenses REAL)
         ''')
-        
+
     def save_data(self):
-        income = float(self.income_input.text())
-        expenses = float(self.expense_input.text())
+        try:
+            income = float(self.income_input.text())
+            expenses = float(self.expense_input.text())
 
-        # Insert the data into the database
-        self.cursor.execute('''
-            INSERT INTO budget (income, expenses)
-            VALUES (?, ?)
-        ''', (income, expenses))
-        self.conn.commit()
-        
-        # Clear the text fields
-        self.income_input.clear()
-        self.expense_input.clear()
+            # Create a CSV file
+            with open('budget.csv', 'a', newline='') as file:
+                writer = csv.writer(file)
+                writer.writerow([income, expenses])
 
-    def closeEvent(self, event):
-        # Close the database connection
-        self.conn.close()
-        event.accept()
+            # Clear the text fields
+            self.income_input.clear()
+            self.expense_input.clear()
+
+            # Provide user feedback
+            QMessageBox.information(self, "Success", "Data saved successfully!")
+        except ValueError:
+            QMessageBox.critical(self, "Error", "Invalid input. Please enter valid numbers for income and expenses.")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", "An error occurred: " + str(e))

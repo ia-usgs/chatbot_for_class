@@ -1,7 +1,7 @@
 import sys
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QLineEdit, QPushButton, QGridLayout
 from PyQt5.QtCore import Qt
-import bcrypt
+import hashlib
 from PyQt5.QtGui import QFont
 from dashboard_screen import DashboardScreen
 from register_screen import RegisterScreen
@@ -39,15 +39,16 @@ class ChatbotGUI(QWidget):
         grid.addWidget(registerButton, 3, 0, 1, 2)
 
     def login(self):
-        username = self.username.text()
-        password = self.password.text()
+        username = str(self.username.text())
+        password = str(self.password.text())
+
         # Connect to the database
         self.conn = sqlite3.connect('users.db')
         self.cursor = self.conn.cursor()
 
         # Query the database for the username
         self.cursor.execute('''
-            SELECT * FROM budget
+            SELECT * FROM users
             WHERE username = ?
         ''', (username,))
 
@@ -57,13 +58,22 @@ class ChatbotGUI(QWidget):
         # Check if the username exists in the database
         if result:
             # Check the password
-            if bcrypt.checkpw(password.encode('utf-8'), result[1]):
+            if hashlib.sha256(password.encode()).hexdigest() == result[1]:
                 self.showPage("DashboardScreen")
                 self.close()
             else:
                 print("Invalid password")
         else:
             print("Invalid username")
+
+    def showPage(self, pageName):
+        if pageName == "DashboardScreen":
+            self.dashboard = DashboardScreen()
+            self.dashboard.show()
+        elif pageName == "RegisterScreen":
+            self.register = RegisterScreen()
+            self.register.show()
+            self.close()
 
     def showPage(self, pageName):
         if pageName == "DashboardScreen":

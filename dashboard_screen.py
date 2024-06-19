@@ -1,10 +1,11 @@
 from PyQt5.QtWidgets import QWidget, QGridLayout, QLabel, QPushButton
 from PyQt5.QtGui import QFont
-from budget_management_screen import *
+from budget_management_screen import BudgetManagementScreen
 from expense_tracking_screen import ExpenseTrackingScreen
 from reports_screen import ReportsScreen
 from savings_goals_screen import SavingsGoalsScreen
 from user_settings_screen import UserSettingsScreen
+from ChatBot import ChatBot
 
 class DashboardScreen(QWidget):
     def __init__(self):
@@ -43,6 +44,10 @@ class DashboardScreen(QWidget):
         button = QPushButton("Settings")
         button.clicked.connect(lambda: self.showPage("UserSettingsScreen"))
         grid.addWidget(button, 5, 0)
+        
+        button = QPushButton("ChatBot")
+        button.clicked.connect(lambda: self.showPage("ChatBot"))
+        grid.addWidget(button, 6, 0)
 
     def showPage(self, pageName):
         if pageName == "BudgetManagementScreen":
@@ -59,5 +64,8 @@ class DashboardScreen(QWidget):
             self.expense_tracking.show()
         elif pageName == "UserSettingsScreen":
             self.expense_tracking = UserSettingsScreen()
+            self.expense_tracking.show()
+        elif pageName == "ChatBot":
+            self.expense_tracking = ChatBot()
             self.expense_tracking.show()
             

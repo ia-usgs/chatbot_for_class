@@ -2,6 +2,9 @@ from PyQt5.QtWidgets import QWidget, QGridLayout, QLabel, QLineEdit, QPushButton
 from PyQt5.QtGui import QFont
 from dashboard_screen import DashboardScreen
 import sqlite3
+import hashlib
+import getpass
+
 
 class RegisterScreen(QWidget):
     def __init__(self):
@@ -38,7 +41,7 @@ class RegisterScreen(QWidget):
         
         # Create the table if it doesn't exist
         self.cursor.execute('''
-            CREATE TABLE IF NOT EXISTS budget
+            CREATE TABLE IF NOT EXISTS users
             (username REAL, password REAL)
         ''')
         
@@ -46,13 +49,16 @@ class RegisterScreen(QWidget):
         username = str(self.username.text())
         password = str(self.password.text())
 
+        # Hash the password
+        password_hash = hashlib.sha256(password.encode()).hexdigest()
+
         # Insert the data into the database
         self.cursor.execute('''
-            INSERT INTO budget (username, password)
+            INSERT INTO users (username, password)
             VALUES (?, ?)
-        ''', (username, password))
+        ''', (username, password_hash))
         self.conn.commit()
-        
+
         # Clear the text fields
         self.username.clear()
         self.password.clear()
