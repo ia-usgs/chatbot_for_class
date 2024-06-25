@@ -1,92 +1,66 @@
-import sys
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QLineEdit, QPushButton, QGridLayout
-from PyQt5.QtCore import Qt
+import tkinter as tk
+from tkinter import ttk
+from tkinter import messagebox
 import hashlib
-from PyQt5.QtGui import QFont
+import sqlite3
 from dashboard_screen import DashboardScreen
 from register_screen import RegisterScreen
-import sqlite3
+import sv_ttk
 
-class ChatbotGUI(QWidget):
+class ChatbotGUI(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.initUI()
+        self.title("Financial Chatbot")
+        self.geometry("800x600")
+        self.create_widgets()
 
-    def initUI(self):
-        self.setWindowTitle("Financial Chatbot")
-        self.setGeometry(300, 300, 800, 600)
-        self.createWidgets()
+    def create_widgets(self):
+        mainframe = ttk.Frame(self, padding="3 3 12 12")
+        mainframe.grid(column=0, row=0, sticky=(tk.W, tk.E, tk.N, tk.S))
+        self.columnconfigure(0, weight=1)
+        self.rowconfigure(0, weight=1)
 
-    def createWidgets(self):
-        grid = QGridLayout()
-        self.setLayout(grid)
+        ttk.Label(mainframe, text="Username").grid(column=1, row=1, sticky=tk.W)
+        self.username = ttk.Entry(mainframe, width=25)
+        self.username.grid(column=2, row=1, sticky=(tk.W, tk.E))
 
-        grid.addWidget(QLabel("Username"), 0, 0)
-        self.username = QLineEdit()
-        grid.addWidget(self.username, 0, 1)
+        ttk.Label(mainframe, text="Password").grid(column=1, row=2, sticky=tk.W)
+        self.password = ttk.Entry(mainframe, width=25, show="*")
+        self.password.grid(column=2, row=2, sticky=(tk.W, tk.E))
 
-        grid.addWidget(QLabel("Password"), 1, 0)
-        self.password = QLineEdit()
-        self.password.setEchoMode(QLineEdit.Password)
-        grid.addWidget(self.password, 1, 1)
+        login_button = ttk.Button(mainframe, text="Login", command=self.login)
+        login_button.grid(column=2, row=3, sticky=tk.W)
 
-        loginButton = QPushButton("Login")
-        loginButton.clicked.connect(self.login)
-        grid.addWidget(loginButton, 2, 0, 1, 2)
-
-        registerButton = QPushButton("Register")
-        registerButton.clicked.connect(lambda: self.showPage("RegisterScreen"))
-        grid.addWidget(registerButton, 3, 0, 1, 2)
+        register_button = ttk.Button(mainframe, text="Register", command=lambda: self.show_page("RegisterScreen"))
+        register_button.grid(column=2, row=4, sticky=tk.W)
 
     def login(self):
-        username = str(self.username.text())
-        password = str(self.password.text())
+        username = self.username.get()
+        password = self.password.get()
 
         # Connect to the database
-        self.conn = sqlite3.connect('users.db')
-        self.cursor = self.conn.cursor()
+        conn = sqlite3.connect('users.db')
+        cursor = conn.cursor()
 
         # Query the database for the username
-        self.cursor.execute('''
-            SELECT * FROM users
-            WHERE username = ?
-        ''', (username,))
-
-        # Fetch the result
-        result = self.cursor.fetchone()
+        cursor.execute('SELECT * FROM users WHERE username = ?', (username,))
+        result = cursor.fetchone()
 
         # Check if the username exists in the database
-        if result:
-            # Check the password
-            if hashlib.sha256(password.encode()).hexdigest() == result[1]:
-                self.showPage("DashboardScreen")
-                self.close()
-            else:
-                print("Invalid password")
+        if result and hashlib.sha256(password.encode()).hexdigest() == result[1]:
+            self.show_page("DashboardScreen")
         else:
-            print("Invalid username")
+            messagebox.showerror("Error", "Invalid username or password")
 
-    def showPage(self, pageName):
-        if pageName == "DashboardScreen":
-            self.dashboard = DashboardScreen()
-            self.dashboard.show()
-        elif pageName == "RegisterScreen":
-            self.register = RegisterScreen()
-            self.register.show()
-            self.close()
-
-    def showPage(self, pageName):
-        if pageName == "DashboardScreen":
-            self.dashboard = DashboardScreen()
-            self.dashboard.show()
-        elif pageName == "RegisterScreen":
-            self.register = RegisterScreen()
-            self.register.show()
-            self.close()
+    def show_page(self, page_name):
+        if page_name == "DashboardScreen":
+            self.destroy()
+            DashboardScreen().mainloop()
+        elif page_name == "RegisterScreen":
+            self.destroy()
+            RegisterScreen().mainloop()
 
 if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    app.setStyle('Fusion')
-    gui = ChatbotGUI()
-    gui.show()
-    sys.exit(app.exec_())
+    app = ChatbotGUI()
+    sv_ttk.set_theme("dark")
+    app.mainloop()

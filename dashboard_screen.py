@@ -1,5 +1,6 @@
-from PyQt5.QtWidgets import QWidget, QGridLayout, QLabel, QPushButton
-from PyQt5.QtGui import QFont
+import tkinter as tk
+from tkinter import ttk
+import sv_ttk
 from budget_management_screen import BudgetManagementScreen
 from expense_tracking_screen import ExpenseTrackingScreen
 from reports_screen import ReportsScreen
@@ -7,65 +8,52 @@ from savings_goals_screen import SavingsGoalsScreen
 from user_settings_screen import UserSettingsScreen
 from ChatBot import ChatBot
 
-class DashboardScreen(QWidget):
+class DashboardScreen(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.initUI()
+        sv_ttk.set_theme("dark")
+        self.title("Dashboard")
+        self.geometry("800x600")
+        self.create_widgets()
 
-    def initUI(self):
-        self.setWindowTitle("Dashboard")
-        self.setGeometry(300, 300, 800, 600)
-        self.createWidgets()
+    def create_widgets(self):
+        mainframe = ttk.Frame(self, padding="3 3 12 12")
+        mainframe.grid(column=0, row=0, sticky=(tk.W, tk.E, tk.N, tk.S))
+        self.columnconfigure(0, weight=1)
+        self.rowconfigure(0, weight=1)
 
-    def createWidgets(self):
-        grid = QGridLayout()
-        self.setLayout(grid)
+        ttk.Label(mainframe, text="Dashboard", font=("Helvetica", 16)).grid(column=0, row=0, sticky=tk.W)
 
-        label = QLabel("Dashboard")
-        label.setFont(QFont("Helvetica", 16))
-        grid.addWidget(label, 0, 0)
+        self.create_button(mainframe, "Budget Management", self.show_budget_management).grid(column=0, row=1, sticky=tk.W)
+        self.create_button(mainframe, "Expense Tracking", self.show_expense_tracking).grid(column=0, row=2, sticky=tk.W)
+        self.create_button(mainframe, "Savings Goals", self.show_savings_goals).grid(column=0, row=3, sticky=tk.W)
+        self.create_button(mainframe, "Reports", self.show_reports).grid(column=0, row=4, sticky=tk.W)
+        self.create_button(mainframe, "Settings", self.show_settings).grid(column=0, row=5, sticky=tk.W)
+        self.create_button(mainframe, "ChatBot", self.show_chatbot).grid(column=0, row=6, sticky=tk.W)
 
-        button = QPushButton("Budget Management")
-        button.clicked.connect(lambda: self.showPage("BudgetManagementScreen"))
-        grid.addWidget(button, 1, 0)
+    def create_button(self, parent, text, command):
+        return ttk.Button(parent, text=text, command=command)
 
-        button = QPushButton("Expense Tracking")
-        button.clicked.connect(lambda: self.showPage("ExpenseTrackingScreen"))
-        grid.addWidget(button, 2, 0)
+    def show_budget_management(self):
+        self.destroy()
+        BudgetManagementScreen().mainloop()
 
-        button = QPushButton("Savings Goals")
-        button.clicked.connect(lambda: self.showPage("SavingsGoalsScreen"))
-        grid.addWidget(button, 3, 0)
+    def show_expense_tracking(self):
+        self.destroy()
+        ExpenseTrackingScreen().mainloop()
 
-        button = QPushButton("Reports")
-        button.clicked.connect(lambda: self.showPage("ReportsScreen"))
-        grid.addWidget(button, 4, 0)
+    def show_savings_goals(self):
+        self.destroy()
+        SavingsGoalsScreen().mainloop()
 
-        button = QPushButton("Settings")
-        button.clicked.connect(lambda: self.showPage("UserSettingsScreen"))
-        grid.addWidget(button, 5, 0)
-        
-        button = QPushButton("ChatBot")
-        button.clicked.connect(lambda: self.showPage("ChatBot"))
-        grid.addWidget(button, 6, 0)
+    def show_reports(self):
+        self.destroy()
+        ReportsScreen().mainloop()
 
-    def showPage(self, pageName):
-        if pageName == "BudgetManagementScreen":
-            self.budget_management = BudgetManagementScreen()
-            self.budget_management.show()
-        elif pageName == "ExpenseTrackingScreen":
-            self.expense_tracking = ExpenseTrackingScreen()
-            self.expense_tracking.show()
-        elif pageName == "SavingsGoalsScreen":
-            self.expense_tracking = SavingsGoalsScreen()
-            self.expense_tracking.show()
-        elif pageName == "ReportsScreen":
-            self.expense_tracking = ReportsScreen()
-            self.expense_tracking.show()
-        elif pageName == "UserSettingsScreen":
-            self.expense_tracking = UserSettingsScreen()
-            self.expense_tracking.show()
-        elif pageName == "ChatBot":
-            self.expense_tracking = ChatBot()
-            self.expense_tracking.show()
-            
+    def show_settings(self):
+        self.destroy()
+        UserSettingsScreen().mainloop()
+
+    def show_chatbot(self):
+        self.destroy()
+        ChatBot().mainloop()

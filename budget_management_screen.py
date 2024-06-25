@@ -1,89 +1,78 @@
-from PyQt5.QtWidgets import QWidget, QGridLayout, QLabel, QPushButton, QMessageBox, QTableWidget, QTableWidgetItem
-from PyQt5.QtGui import QFont
-from PyQt5.QtWidgets import QLineEdit
+import tkinter as tk
+from tkinter import ttk
+from tkinter import messagebox
 import sqlite3
 import csv
 import pandas as pd
+import sv_ttk
 
-class BudgetManagementScreen(QWidget):
+class BudgetManagementScreen(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.initUI()
+        sv_ttk.set_theme("dark")
+        self.title("Budget Management")
+        self.geometry("800x600")
+        self.create_widgets()
 
-    def initUI(self):
-        self.setWindowTitle("Budget Management")
-        self.setGeometry(300, 300, 800, 600)
-        self.createWidgets()
+    def create_widgets(self):
+        mainframe = ttk.Frame(self, padding="3 3 12 12")
+        mainframe.grid(column=0, row=0, sticky=(tk.W, tk.E, tk.N, tk.S))
+        self.columnconfigure(0, weight=1)
+        self.rowconfigure(0, weight=1)
 
-    def createWidgets(self):
-        grid = QGridLayout()
-        self.setLayout(grid)
+        ttk.Label(mainframe, text="Budget Management", font=("Helvetica", 16)).grid(column=1, row=1, columnspan=2, sticky=tk.W)
 
-        label = QLabel("Budget Management")
-        label.setFont(QFont("Helvetica", 16))
-        grid.addWidget(label, 0, 0, 1, 2)
+        self.table_widget = ttk.Treeview(mainframe, columns=("Income", "Expenses"), show="headings")
+        self.table_widget.heading("Income", text="Income")
+        self.table_widget.heading("Expenses", text="Expenses")
+        self.table_widget.grid(column=1, row=2, columnspan=2, sticky=(tk.W, tk.E))
 
-        self.table_widget = QTableWidget()
-        self.table_widget.setRowCount(0)
-        self.table_widget.setColumnCount(2)
-        self.table_widget.setHorizontalHeaderItem(0, QTableWidgetItem("Income"))
-        self.table_widget.setHorizontalHeaderItem(1, QTableWidgetItem("Expenses"))
-        grid.addWidget(self.table_widget, 1, 0, 1, 2)
+        ttk.Label(mainframe, text="Income:").grid(column=1, row=3, sticky=tk.W)
+        self.income_input = ttk.Entry(mainframe, width=25)
+        self.income_input.grid(column=2, row=3, sticky=(tk.W, tk.E))
 
-        income_label = QLabel("Income:")
-        grid.addWidget(income_label, 2, 0)
-        self.income_input = QLineEdit()
-        grid.addWidget(self.income_input, 2, 1)
+        ttk.Label(mainframe, text="Expenses:").grid(column=1, row=4, sticky=tk.W)
+        self.expense_input = ttk.Entry(mainframe, width=25)
+        self.expense_input.grid(column=2, row=4, sticky=(tk.W, tk.E))
 
-        expense_label = QLabel("Expenses:")
-        grid.addWidget(expense_label, 3, 0)
-        self.expense_input = QLineEdit()
-        grid.addWidget(self.expense_input, 3, 1)
-
-        save_button = QPushButton("Save")
-        grid.addWidget(save_button, 4, 0, 1, 2)
-        save_button.clicked.connect(self.save_data)
+        save_button = ttk.Button(mainframe, text="Save", command=self.save_data)
+        save_button.grid(column=1, row=5, columnspan=2, sticky=tk.W)
 
         self.conn = sqlite3.connect('budget.db')
         self.cursor = self.conn.cursor()
-
-        self.cursor.execute('''
-            CREATE TABLE IF NOT EXISTS budget
-            (income REAL, expenses REAL)
-        ''')
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS budget (income REAL, expenses REAL)''')
+        self.display_data()
 
     def save_data(self):
         try:
-            income = float(self.income_input.text())
-            expenses = float(self.expense_input.text())
+            income = float(self.income_input.get())
+            expenses = float(self.expense_input.get())
 
             self.cursor.execute("INSERT INTO budget VALUES (?, ?)", (income, expenses))
             self.conn.commit()
 
-            self.income_input.clear()
-            self.expense_input.clear()
+            self.income_input.delete(0, tk.END)
+            self.expense_input.delete(0, tk.END)
 
             self.display_data()
 
-            # Create a CSV file
-
             with open('budget.csv', 'a', newline='') as file:
-
                 writer = csv.writer(file)
-
                 writer.writerow([income, expenses])
-            
-            QMessageBox.information(self, "Success", "Data saved successfully!")
+
+            messagebox.showinfo("Success", "Data saved successfully!")
         except ValueError:
-            QMessageBox.critical(self, "Error", "Invalid input. Please enter valid numbers for income and expenses.")
+            messagebox.showerror("Error", "Invalid input. Please enter valid numbers for income and expenses.")
         except Exception as e:
-            QMessageBox.critical(self, "Error", "An error occurred: " + str(e))
+            messagebox.showerror("Error", f"An error occurred: {e}")
 
     def display_data(self):
-        self.table_widget.setRowCount(0)
+        for row in self.table_widget.get_children():
+            self.table_widget.delete(row)
         self.cursor.execute("SELECT * FROM budget")
-        rows = self.cursor.fetchall()
-        for row in rows:
-            self.table_widget.insertRow(self.table_widget.rowCount())
-            self.table_widget.setItem(self.table_widget.rowCount() - 1, 0, QTableWidgetItem(str(row[0])))
-            self.table_widget.setItem(self.table_widget.rowCount() - 1, 1, QTableWidgetItem(str(row[1])))
+        for row in self.cursor.fetchall():
+            self.table_widget.insert("", "end", values=row)
+
+if __name__ == "__main__":
+    app = BudgetManagementScreen()
+    app.mainloop()

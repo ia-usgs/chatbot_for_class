@@ -1,65 +1,56 @@
-import sys
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QLineEdit, QTextEdit
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QTextCursor
+import tkinter as tk
+from tkinter import ttk
+from tkinter import scrolledtext
 import csv
 from groq import Groq
+import sv_ttk
 
-class ChatBot(QWidget):
+class ChatBot(tk.Tk):
     def __init__(self):
         super().__init__()
-
-        self.initUI()
+        sv_ttk.set_theme("dark")
+        self.title("Chatbot")
+        self.geometry("300x400")
+        self.create_widgets()
 
         self.client = Groq(api_key="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")
         self.model = "llama3-8b-8192"
         self.messages = []
 
-    def initUI(self):
-        self.setGeometry(300, 300, 300, 400)
-        self.setWindowTitle('Chatbot')
+    def create_widgets(self):
+        self.input_field = ttk.Entry(self)
+        self.input_field.grid(column=0, row=0, sticky=(tk.W, tk.E))
+        self.input_field.bind("<Return>", self.send_message)
 
-        layout = QVBoxLayout()
+        self.output_field = scrolledtext.ScrolledText(self, state="disabled")
+        self.output_field.grid(column=0, row=1, sticky=(tk.W, tk.E, tk.N, tk.S))
+        self.columnconfigure(0, weight=1)
+        self.rowconfigure(1, weight=1)
 
-        self.inputField = QLineEdit()
-        self.inputField.returnPressed.connect(self.sendMessage)
-        layout.addWidget(self.inputField)
-
-        self.outputField = QTextEdit()
-        self.outputField.setReadOnly(True)
-        layout.addWidget(self.outputField)
-
-        self.setLayout(layout)
-
-        self.show()
-
-    def sendMessage(self):
-        message = self.inputField.text()
-        self.inputField.clear()
-        self.outputField.append(f"You: {message}")
+    def send_message(self, event=None):
+        message = self.input_field.get()
+        self.input_field.delete(0, tk.END)
+        self.output_field.configure(state="normal")
+        self.output_field.insert(tk.END, f"You: {message}\n")
         if message.lower() == "what's my budget":
-            self.outputField.append(self.getBudget())
+            self.output_field.insert(tk.END, f"Chatbot: {self.get_budget()}\n")
         elif message.lower() == "what's my income":
-            self.outputField.append(self.getIncome())
+            self.output_field.insert(tk.END, f"Chatbot: {self.get_income()}\n")
         elif message.lower() == "what's my expenses":
-            self.outputField.append(self.getExpenses())
+            self.output_field.insert(tk.END, f"Chatbot: {self.get_expenses()}\n")
         else:
             chat_completion = self.client.chat.completions.create(
                 messages=[
-                    # Start with a system message to set the tone
-                    {"role": "system", 
-                     f"content": f"You are a financial advisor. Information about you to know is: My income is {self.getIncome()} and my expenses are {self.getExpenses()}. Please don't forget that. Also, you are only allowed to talk strictly about financial advise."},
-                    # Add the user's question
+                    {"role": "system", "content": f"You are a financial advisor. Information about you to know is: My income is {self.get_income()} and my expenses are {self.get_expenses()}. Please don't forget that. Also, you are only allowed to talk strictly about financial advice."},
                     {"role": "user", "content": message}
                 ],
                 model=self.model,
             )
-            self.outputField.append(" ")
-            self.outputField.append(f"Chatbot: {chat_completion.choices[0].message.content}")
-            self.outputField.append(" ")
-        self.outputField.moveCursor(QTextCursor.End)
-        
-    def getBudget(self):
+            self.output_field.insert(tk.END, f"Chatbot: {chat_completion.choices[0].message.content}\n")
+        self.output_field.configure(state="disabled")
+        self.output_field.yview(tk.END)
+
+    def get_budget(self):
         try:
             with open('budget.csv', 'r') as file:
                 reader = csv.DictReader(file)
@@ -74,7 +65,7 @@ class ChatBot(QWidget):
         except Exception as e:
             return f"Error: {e}"
 
-    def getIncome(self):
+    def get_income(self):
         try:
             with open('budget.csv', 'r') as file:
                 reader = csv.reader(file)
@@ -87,7 +78,7 @@ class ChatBot(QWidget):
         except Exception as e:
             return f"Error: {e}"
 
-    def getExpenses(self):
+    def get_expenses(self):
         try:
             with open('budget.csv', 'r') as file:
                 reader = csv.reader(file)
@@ -100,15 +91,6 @@ class ChatBot(QWidget):
         except Exception as e:
             return f"Error: {e}"
 
-    def closeEvent(self, event):
-        event.accept()
-
-    def clearOutput(self):
-        self.outputField.clear()
-
-    def clearInput(self):
-        self.inputField.clear()
-
-    def clearBoth(self):
-        self.clearOutput()
-        self.clearInput()
+if __name__ == "__main__":
+    app = ChatBot()
+    app.mainloop()
