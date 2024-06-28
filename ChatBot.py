@@ -3,12 +3,13 @@ from tkinter import ttk
 from tkinter import scrolledtext
 import csv
 from groq import Groq
-import sv_ttk
+
 
 class ChatBot(tk.Tk):
     def __init__(self):
         super().__init__()
-        sv_ttk.set_theme("dark")
+        self.tk.call('source', 'forest-dark.tcl')
+        ttk.Style().theme_use('forest-dark')
         self.title("Chatbot")
         self.geometry("300x400")
         self.create_widgets()

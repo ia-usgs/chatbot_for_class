@@ -1,7 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
-import sv_ttk
-from budget_management_screen import BudgetManagementScreen
+from budget_management_screen import *
 from expense_tracking_screen import ExpenseTrackingScreen
 from reports_screen import ReportsScreen
 from savings_goals_screen import SavingsGoalsScreen
@@ -11,7 +10,8 @@ from ChatBot import ChatBot
 class DashboardScreen(tk.Tk):
     def __init__(self):
         super().__init__()
-        sv_ttk.set_theme("dark")
+        self.tk.call('source', 'forest-dark.tcl')
+        ttk.Style().theme_use('forest-dark')
         self.title("Dashboard")
         self.geometry("800x600")
         self.create_widgets()

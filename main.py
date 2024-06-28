@@ -5,11 +5,12 @@ import hashlib
 import sqlite3
 from dashboard_screen import DashboardScreen
 from register_screen import RegisterScreen
-import sv_ttk
 
 class ChatbotGUI(tk.Tk):
     def __init__(self):
         super().__init__()
+        self.tk.call('source', 'forest-dark.tcl')
+        ttk.Style().theme_use('forest-dark')
         self.title("Financial Chatbot")
         self.geometry("800x600")
         self.create_widgets()
@@ -62,5 +63,4 @@ class ChatbotGUI(tk.Tk):
 
 if __name__ == "__main__":
     app = ChatbotGUI()
-    sv_ttk.set_theme("dark")
     app.mainloop()

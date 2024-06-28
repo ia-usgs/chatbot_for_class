@@ -4,12 +4,12 @@ from tkinter import messagebox
 import sqlite3
 import hashlib
 from dashboard_screen import DashboardScreen
-import sv_ttk
 
 class RegisterScreen(tk.Tk):
     def __init__(self):
         super().__init__()
-        sv_ttk.set_theme("dark")
+        self.tk.call('source', 'forest-dark.tcl')
+        ttk.Style().theme_use('forest-dark')
         self.title("Register")
         self.geometry("800x600")
         self.create_widgets()

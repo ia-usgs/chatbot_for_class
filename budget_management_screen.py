@@ -4,12 +4,12 @@ from tkinter import messagebox
 import sqlite3
 import csv
 import pandas as pd
-import sv_ttk
 
 class BudgetManagementScreen(tk.Tk):
     def __init__(self):
         super().__init__()
-        sv_ttk.set_theme("dark")
+        self.tk.call('source', 'forest-dark.tcl')
+        ttk.Style().theme_use('forest-dark')
         self.title("Budget Management")
         self.geometry("800x600")
         self.create_widgets()
