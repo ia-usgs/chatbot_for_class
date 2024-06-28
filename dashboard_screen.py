@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
-from budget_management_screen import *
+from budget_management_screen import BudgetManagementScreen
 from expense_tracking_screen import ExpenseTrackingScreen
 from reports_screen import ReportsScreen
 from savings_goals_screen import SavingsGoalsScreen
