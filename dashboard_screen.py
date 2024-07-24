@@ -1,5 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
+
+from AdminScreen import AdminScreen
 from budget_management_screen import BudgetManagementScreen
 from expense_tracking_screen import ExpenseTrackingScreen
 from reports_screen import ReportsScreen
@@ -30,6 +32,7 @@ class DashboardScreen(tk.Tk):
         self.create_button(mainframe, "Reports", self.show_reports).grid(column=0, row=4, sticky=tk.W)
         self.create_button(mainframe, "Settings", self.show_settings).grid(column=0, row=5, sticky=tk.W)
         self.create_button(mainframe, "ChatBot", self.show_chatbot).grid(column=0, row=6, sticky=tk.W)
+        self.create_button(mainframe, "Admin Dashboard", self.show_admin_dashboard).grid(column=0, row=7, sticky=tk.W)
 
     def create_button(self, parent, text, command):
         return ttk.Button(parent, text=text, command=command)
@@ -40,7 +43,7 @@ class DashboardScreen(tk.Tk):
 
     def show_expense_tracking(self):
         self.destroy()
-        ExpenseTrackingScreen().mainloop()
+        ExpenseTrackingScreen(self).mainloop()  # Pass `self` as the main_window argument
 
     def show_savings_goals(self):
         self.destroy()
@@ -57,3 +60,11 @@ class DashboardScreen(tk.Tk):
     def show_chatbot(self):
         self.destroy()
         ChatBot().mainloop()
+
+    def show_admin_dashboard(self):
+        self.destroy()
+        AdminScreen().mainloop()
+
+if __name__ == "__main__":
+    app = DashboardScreen()
+    app.mainloop()

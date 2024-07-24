@@ -48,23 +48,27 @@ class BudgetManagementScreen(tk.Tk):
             income = float(self.income_input.get())
             expenses = float(self.expense_input.get())
 
+            advice = self.get_financial_advice(income, expenses)
+            messagebox.showinfo("Advice", advice)
+
             self.cursor.execute("INSERT INTO budget VALUES (?, ?)", (income, expenses))
             self.conn.commit()
-
             self.income_input.delete(0, tk.END)
             self.expense_input.delete(0, tk.END)
-
             self.display_data()
-
-            with open('budget.csv', 'a', newline='') as file:
-                writer = csv.writer(file)
-                writer.writerow([income, expenses])
-
             messagebox.showinfo("Success", "Data saved successfully!")
         except ValueError:
             messagebox.showerror("Error", "Invalid input. Please enter valid numbers for income and expenses.")
         except Exception as e:
             messagebox.showerror("Error", f"An error occurred: {e}")
+
+    def get_financial_advice(self, income, expenses):
+        # Simple advice logic based on income and expenses
+        if expenses > income:
+            return "You're spending more than you earn. Consider cutting back on expenses."
+        elif expenses < income * 0.5:
+            return "Great job! You're saving a good portion of your income."
+        return "You're managing your budget well."
 
     def display_data(self):
         for row in self.table_widget.get_children():
