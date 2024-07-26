@@ -4,18 +4,18 @@ from tkinter import ttk, messagebox
 class AdminScreen(tk.Tk):
     def __init__(self):
         super().__init__()
+        self.tk.call('source', 'forest-dark.tcl')
+        ttk.Style().theme_use('forest-dark')
         self.title("Admin Dashboard")
         self.geometry("800x600")
-        self.configure(bg="black")  # Set the background
         self.create_widgets()
 
     def create_widgets(self):
-        # Create main frame with padding and dark theme
+        # Create main frame
         mainframe = ttk.Frame(self, padding="20", style='MainFrame.TFrame')
         mainframe.grid(column=0, row=0, sticky=(tk.W, tk.E, tk.N, tk.S))
-        self.configure_style()
 
-        ttk.Label(mainframe, text="Admin Dashboard", font=("Helvetica", 20, "bold"), background="black", foreground="white").grid(column=1, row=0, columnspan=2, pady=20)
+        ttk.Label(mainframe, text="Admin Dashboard", font=("Helvetica", 20, "bold"), foreground="white").grid(column=1, row=0, columnspan=2, pady=20)
 
         # Button to view users
         view_users_button = ttk.Button(mainframe, text="View Users", command=self.view_users, style='Accent.TButton')
