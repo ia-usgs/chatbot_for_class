@@ -62,13 +62,35 @@ class ChatbotGUI(tk.Tk):
         # Query the database for the username
         cursor.execute('SELECT * FROM users WHERE username = ?', (username,))
         result = cursor.fetchone()
+    def login(self):
+        username = self.username.get()
+        password = self.password.get()
+
+        # Connect to the database
+        conn = sqlite3.connect('users.db')
+        cursor = conn.cursor()
+
+        # Query the database for the username
+        cursor.execute('SELECT * FROM users WHERE username = ?', (username,))
+        result = cursor.fetchone()
 
         # Check if the username exists in the database
-        if result and hashlib.sha256(password.encode()).hexdigest() == result[5]:  # Assuming password hash is at index 5
-            self.show_dashboard_screen()
+        if result:
+            stored_password_hash = result[7]  # Assuming password hash is at index 7
+            salt = result[6]  # Assuming salt is at index 6
+            input_password_hash = hashlib.sha256((salt + password).encode()).hexdigest()
+            if input_password_hash == stored_password_hash:
+                self.show_dashboard_screen()
+            else:
+                messagebox.showerror("Error", "Invalid username or password")
+                print(input_password_hash)
+                print(stored_password_hash)
+                if input_password_hash != salt + stored_password_hash:
+                    print("passwords do not match")
         else:
             messagebox.showerror("Error", "Invalid username or password")
 
+        conn.close()
     def show_register_screen(self):
         self.withdraw()
         RegisterScreen(self).mainloop()

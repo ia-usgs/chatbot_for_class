@@ -4,6 +4,7 @@ from tkinter import messagebox
 import re
 import hashlib
 import sqlite3
+import os
 
 class RegisterScreen(tk.Toplevel):
     def __init__(self, main_window):
@@ -36,6 +37,7 @@ class RegisterScreen(tk.Toplevel):
                 email TEXT,
                 age INTEGER,
                 username TEXT,
+                salt,
                 password TEXT,
                 security_question1 TEXT,
                 security_answer1 TEXT,
@@ -178,7 +180,7 @@ class RegisterScreen(tk.Toplevel):
         password_pattern = r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{7,}$'
         if not re.match(password_pattern, password):
             messagebox.showerror("Error",
-                                 "Password must be at least 7 characters long and include at least one lowercase letter, one uppercase letter, one number, and one special character.")
+                                "Password must be at least 7 characters long and include at least one lowercase letter, one uppercase letter, one number, and one special character.")
             return
 
         if password != confirm_password:
@@ -190,22 +192,25 @@ class RegisterScreen(tk.Toplevel):
             messagebox.showerror("Error", "You must be at least 18 years old to register.")
             return
 
-        # Hash the password
-        password_hash = hashlib.sha256(password.encode()).hexdigest()
+        # Generate a random salt
+        salt = os.urandom(16).hex()
+
+        # Hash the password with the salt
+        password_hash = hashlib.sha256((salt + password).encode()).hexdigest()
 
         # Insert the data into the database
         self.cursor.execute('''
                     INSERT INTO users (first_name, last_name, email, age, username, password, 
-                                      security_question1, security_answer1, 
-                                      security_question2, security_answer2, 
-                                      security_question3, security_answer3,
-                                      is_robot)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                                    salt, security_question1, security_answer1, 
+                                    security_question2, security_answer2, 
+                                    security_question3, security_answer3,
+                                    is_robot)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ''', (first_name, last_name, email, age, username, password_hash,
-                      security_question1, security_answer1,
-                      security_question2, security_answer2,
-                      security_question3, security_answer3,
-                      False))
+                    salt, security_question1, security_answer1,
+                    security_question2, security_answer2,
+                    security_question3, security_answer3,
+                    False))
         self.conn.commit()
 
         # Clear the text fields
