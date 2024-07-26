@@ -1,6 +1,7 @@
+import sys
 import tkinter as tk
 from tkinter import ttk
-
+from PyQt5.QtWidgets import QApplication
 from AdminScreen import AdminScreen
 from budget_management_screen import BudgetManagementScreen
 from expense_tracking_screen import ExpenseTrackingScreen
@@ -30,7 +31,7 @@ class DashboardScreen(tk.Tk):
         self.create_button(mainframe, "Expense Tracking", self.show_expense_tracking).grid(column=0, row=2, sticky=tk.W)
         self.create_button(mainframe, "Savings Goals", self.show_savings_goals).grid(column=0, row=3, sticky=tk.W)
         self.create_button(mainframe, "Reports", self.show_reports).grid(column=0, row=4, sticky=tk.W)
-        self.create_button(mainframe, "Settings", self.show_settings).grid(column=0, row=5, sticky=tk.W)
+        self.create_button(mainframe, "Settings", lambda: self.show_settings()).grid(column=0, row=5, sticky=tk.W)
         self.create_button(mainframe, "ChatBot", self.show_chatbot).grid(column=0, row=6, sticky=tk.W)
         self.create_button(mainframe, "Admin Dashboard", self.show_admin_dashboard).grid(column=0, row=7, sticky=tk.W)
 
@@ -51,7 +52,10 @@ class DashboardScreen(tk.Tk):
 
     def show_reports(self):
         self.destroy()
-        ReportsScreen().mainloop()
+        app = QApplication([])
+        widget = ReportsScreen()
+        widget.show()
+        sys.exit(app.exec_())
 
     def show_settings(self):
         self.destroy()
