@@ -1,187 +1,172 @@
+import os
 import tkinter as tk
-from tkinter import ttk
-from tkinter import scrolledtext
+from tkinter import ttk, scrolledtext, messagebox
 import csv
 from groq import Groq
 
-
 class ChatBot(tk.Tk):
-    def __init__(self):
-        """
-        Initializes the ChatBot GUI window.
-        """
-        # Call the constructor of the parent class
+    def __init__(self, parent=None):
         super().__init__()
-        
-        # Load the Forest-Dark theme using the Tkinter call method
-        self.tk.call('source', 'forest-dark.tcl')
-        
-        # Use the Forest-Dark theme for the GUI
-        ttk.Style().theme_use('forest-dark')
-        
-        # Set the title of the GUI window to "Chatbot"
-        self.title("Chatbot")
-        
-        # Set the size of the GUI window to 800x600 pixels
-        self.geometry("800x600")
-        
-        # Create the widgets for the GUI
-        self.create_widgets()
-        
-        # Create a Groq client with the OpenAI API key
+        self.parent = parent
+        self.initUI()
         self.client = Groq(api_key="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")
-        
-        # Set the model to use for the Groq client
         self.model = "llama3-8b-8192"
-        
-        # Initialize an empty list to store the messages
         self.messages = []
 
+    def initUI(self):
+        self.tk.call('source', 'forest-dark.tcl')
+        ttk.Style().theme_use('forest-dark')
+        self.title("Financial Advisor Chatbot")
+        self.geometry("800x600")
+        self.create_widgets()
+
     def create_widgets(self):
-        # Create an Entry widget for the user to input messages
-        self.input_field = ttk.Entry(self)
+        main_frame = ttk.Frame(self, padding="10")
+        main_frame.grid(column=0, row=0, sticky=(tk.W, tk.E, tk.N, tk.S))
+        self.columnconfigure(0, weight=1)
+        self.rowconfigure(0, weight=1)
+
+        # Title and Back Button
+        title_frame = ttk.Frame(main_frame)
+        title_frame.grid(column=0, row=0, columnspan=3, sticky=(tk.W, tk.E))
+        title_frame.columnconfigure(1, weight=1)
+
+        back_button = ttk.Button(title_frame, text="Back to Dashboard", command=self.back_to_dashboard)
+        back_button.grid(column=0, row=0, sticky=tk.W)
+
+        title_label = ttk.Label(title_frame, text="Financial Advisor Chatbot", font=("Helvetica", 16))
+        title_label.grid(column=1, row=0)
+
+        help_button = ttk.Button(title_frame, text="Help", command=self.show_help)
+        help_button.grid(column=2, row=0, sticky=tk.E)
+
+        # Chat Output
+        self.output_field = scrolledtext.ScrolledText(main_frame, state="disabled", wrap=tk.WORD, font=("Helvetica", 10))
+        self.output_field.grid(column=0, row=1, columnspan=3, sticky=(tk.W, tk.E, tk.N, tk.S))
+
+        # Input Field
+        self.input_field = ttk.Entry(main_frame, font=("Helvetica", 10))
         self.input_field.insert(0, "Type your message here...")
-        self.input_field.bind("<FocusIn>", lambda event: self.input_field.delete(0, tk.END) if self.input_field.get() == "Type your message here..." else None)
+        self.input_field.bind("<FocusIn>", self.clear_placeholder)
         self.input_field.configure(foreground='grey')
-        self.input_field.grid(column=0, row=0, columnspan=3, sticky=(tk.W, tk.E))
+        self.input_field.grid(column=0, row=2, columnspan=2, sticky=(tk.W, tk.E))
 
-        # Create a "send" button for sending messages
-        send_button = ttk.Button(self, text="Send", command=self.send_message)
-        send_button.grid(column=2, row=0, sticky=(tk.E))
+        # Send Button
+        send_button = ttk.Button(main_frame, text="Send", command=self.send_message)
+        send_button.grid(column=2, row=2, sticky=(tk.E))
 
-        # Bind the Enter key to the send_message method for sending messages
         self.input_field.bind("<Return>", self.send_message)
 
-        # Create a ScrolledText widget for displaying messages
-        self.output_field = scrolledtext.ScrolledText(self, state="disabled")
-        self.output_field.grid(column=0, row=1, columnspan=3, sticky=(tk.W, tk.E, tk.N, tk.S))
-        # Set the column weights to make the chatbot's response field expand horizontally
-        self.columnconfigure(0, weight=3)
-        self.columnconfigure(1, weight=1)
-        self.columnconfigure(2, weight=1)
-        # Set the row weight to make the chatbot's response field expand vertically
-        self.rowconfigure(1, weight=1)
+        # Configure weights
+        main_frame.columnconfigure(0, weight=3)
+        main_frame.columnconfigure(1, weight=1)
+        main_frame.columnconfigure(2, weight=1)
+        main_frame.rowconfigure(1, weight=1)
+
+    def clear_placeholder(self, event):
+        if self.input_field.get() == "Type your message here...":
+            self.input_field.delete(0, tk.END)
+            self.input_field.configure(foreground='black')
 
     def send_message(self, event=None):
-        # Get the message input by the user
         message = self.input_field.get()
-        # Clear the input field
+        if message == "Type your message here..." or not message.strip():
+            return
         self.input_field.delete(0, tk.END)
-        # Enable editing in the output field
         self.output_field.configure(state="normal")
-        # Insert the user's message into the output field
-        self.output_field.insert(tk.END, "You: ", "user")
-        self.output_field.insert(tk.END, f"{message}\n\n")
-        
-        response_tag = "response"  # Define a tag for the chatbot's responses
-        # Configure the response tag with a white text color
+        self.output_field.insert(tk.END, f"You: {message}\n\n", "user")
+
+        response_tag = "response"
         self.output_field.tag_configure(response_tag, foreground="white")
-        
-        # Check if the user's message is asking for their budget
+
         if message.lower() == "what's my budget":
-            # Insert the chatbot's response into the output field
-            self.output_field.insert(tk.END, "Chatbot: ", response_tag)
-            self.output_field.insert(tk.END, f"{self.get_budget()}\n", response_tag)
-        # Check if the user's message is asking for their income
+            self.output_field.insert(tk.END, f"Chatbot: {self.get_budget()}\n\n", response_tag)
         elif message.lower() == "what's my income":
-            self.output_field.insert(tk.END, "Chatbot: ", response_tag)
-            self.output_field.insert(tk.END, f"{self.get_income()}\n", response_tag)
-        # Check if the user's message is asking for their expenses
+            self.output_field.insert(tk.END, f"Chatbot: {self.get_income()}\n\n", response_tag)
         elif message.lower() == "what's my expenses":
-            self.output_field.insert(tk.END, "Chatbot: ", response_tag)
-            self.output_field.insert(tk.END, f"{self.get_expenses()}\n", response_tag)
+            self.output_field.insert(tk.END, f"Chatbot: {self.get_expenses()}\n\n", response_tag)
         else:
-            # Send the user's message to the chatbot and get the response
-            chat_completion = self.client.chat.completions.create(
-                messages=[
-                    {"role": "system", "content": f"You are a financial advisor. Information about you to know is: My income is {self.get_income()} and my expenses are {self.get_expenses()}. Please don't forget that. Also, you are only allowed to talk strictly about financial advice."},
-                    {"role": "user", "content": message}
-                ],
-                model=self.model,
-            )
-            # Insert the chatbot's response into the output field
-            self.output_field.insert(tk.END, "Chatbot: ", response_tag)
-            self.output_field.insert(tk.END, f"{chat_completion.choices[0].message.content}\n\n", response_tag)  # Add newline for spacing
-        
-        # Disable editing in the output field
+            try:
+                chat_completion = self.client.chat.completions.create(
+                    messages=[
+                        {"role": "system", "content": f"You are a financial advisor. The user's income is {self.get_income()} and expenses are {self.get_expenses()}. Provide strictly financial advice."},
+                        {"role": "user", "content": message}
+                    ],
+                    model=self.model,
+                )
+                self.output_field.insert(tk.END, f"Chatbot: {chat_completion.choices[0].message.content}\n\n", response_tag)
+            except Exception as e:
+                self.output_field.insert(tk.END, f"Chatbot: An error occurred: {e}\n\n", response_tag)
+
         self.output_field.configure(state="disabled")
-        # Scroll the output field to the end
-        self.output_field.yview(tk.END)
+        self.output_field.see(tk.END)
 
     def get_budget(self):
         try:
-            # Open the budget.csv file in read mode
             with open('budget.csv', 'r') as file:
-                # Create a DictReader object to read the CSV file
                 reader = csv.DictReader(file)
-                # Initialize variables to store the total income and total expenses
-                total_income = 0
-                total_expenses = 0
-                # Iterate over each row in the CSV file
-                for row in reader:
-                    # Convert the 'Income' column value to a float and add it to the total income
-                    total_income += float(row['Income'])
-                    # Convert the 'Expenses' column value to a float and add it to the total expenses
-                    total_expenses += float(row['Expenses'])
-                # Calculate the budget by subtracting the total expenses from the total income
-                budget = total_income - total_expenses
-                return f"Your budget is: {budget}"
+                total_income = sum(float(row['Income']) for row in reader)
+                file.seek(0)
+                next(reader)  # Skip header
+                total_expenses = sum(float(row['Expenses']) for row in reader)
+            budget = total_income - total_expenses
+            return f"Your budget is: ${budget:.2f}"
         except FileNotFoundError:
-            # Return an error message if the budget.csv file is not found
             return "Error: budget.csv not found"
         except Exception as e:
-            # Return an error message if any other exception occurs
             return f"Error: {e}"
 
     def get_income(self):
-        """
-        Calculate and return the total income from the budget.csv file.
-        """
         try:
-            # Open the budget.csv file in read mode
             with open('budget.csv', 'r') as file:
-                # Create a CSV reader object to read the file
-                reader = csv.reader(file)
-                # Initialize a variable to store the total income
-                total_income = 0
-                # Iterate over each row in the CSV file
-                for row in reader:
-                    # Get the first column value (income) from the row and convert it to a float
-                    # Add it to the total income
-                    total_income += float(row[0])
-                # Format the total income with 2 decimal places and return it
-                return f"Your income is: {total_income:.2f}"
+                reader = csv.DictReader(file)
+                total_income = sum(float(row['Income']) for row in reader)
+            return f"Your income is: ${total_income:.2f}"
         except FileNotFoundError:
-            # Return an error message if the budget.csv file is not found
             return "Error: budget.csv not found"
         except Exception as e:
-            # Return an error message if any other exception occurs
             return f"Error: {e}"
 
     def get_expenses(self):
-        """
-        Calculate and return the total expenses from the budget.csv file.
-        """
         try:
-            # Open the budget.csv file in read mode
             with open('budget.csv', 'r') as file:
-                # Create a CSV reader object to read the file
-                reader = csv.reader(file)
-                # Initialize a variable to store the total expenses
-                total_expenses = 0
-                # Iterate over each row in the CSV file
-                for row in reader:
-                    # Get the second column value (expenses) from the row and convert it to a float
-                    # Add it to the total expenses
-                    total_expenses += float(row[1])
-                # Format the total expenses with 2 decimal places and return it
-                return f"Your expenses are: {total_expenses:.2f}"
+                reader = csv.DictReader(file)
+                total_expenses = sum(float(row['Expenses']) for row in reader)
+            return f"Your expenses are: ${total_expenses:.2f}"
         except FileNotFoundError:
-            # Return an error message if the budget.csv file is not found
             return "Error: budget.csv not found"
         except Exception as e:
-            # Return an error message if any other exception occurs
             return f"Error: {e}"
+
+    def show_help(self):
+        help_text = """
+        Welcome to the Financial Advisor Chatbot!
+
+        Here are some things you can ask or do:
+
+        1. "What's my budget?" - Get your current budget
+        2. "What's my income?" - View your total income
+        3. "What's my expenses?" - See your total expenses
+        4. Ask for financial advice, such as:
+           - "How can I save more money?"
+           - "Should I invest in stocks or bonds?"
+           - "How do I create a retirement plan?"
+           - "What's the best way to pay off debt?"
+        5. You can also ask about:
+           - Budgeting tips
+           - Investment strategies
+           - Tax planning
+           - Insurance advice
+
+        Remember, this chatbot is designed to provide general financial advice. 
+        For personalized financial planning, please consult with a certified financial advisor.
+        """
+        messagebox.showinfo("Chatbot Help", help_text)
+
+    def back_to_dashboard(self):
+        from dashboard_screen import DashboardScreen  # Local import to avoid circular dependency
+        self.destroy()  # Close the BudgetManagementScreen window
+        DashboardScreen().mainloop()  # Open the DashboardScreen
 
 if __name__ == "__main__":
     app = ChatBot()

@@ -1,10 +1,13 @@
 from PyQt5.QtWidgets import QWidget, QGridLayout, QLabel, QPushButton, QLineEdit, QMessageBox, QApplication
 from PyQt5.QtGui import QFont
+from PyQt5.QtCore import Qt, pyqtSignal
 import sys
 
 class UserSettingsScreen(QWidget):
-    def __init__(self, parent=None):
-        super().__init__(parent)
+    closed = pyqtSignal()  # Signal to emit when the window is closed
+    def __init__(self, dashboard):
+        super().__init__()
+        self.dashboard = dashboard
         self.initUI()
 
     def initUI(self):
@@ -13,68 +16,79 @@ class UserSettingsScreen(QWidget):
         self.setStyleSheet("background-color: #121212; color: #E0E0E0;")
         self.createWidgets()
 
+    def closeEvent(self, event):
+        self.closed.emit()
+        super().closeEvent(event)
+
     def createWidgets(self):
         grid = QGridLayout()
+        grid.setAlignment(Qt.AlignTop)
         self.setLayout(grid)
 
         titleLabel = QLabel("User Settings")
-        titleLabel.setFont(QFont("Helvetica", 20))
+        titleLabel.setFont(QFont("Helvetica", 24))
+        titleLabel.setAlignment(Qt.AlignCenter)
         grid.addWidget(titleLabel, 0, 0, 1, 2)
 
-        grid.addWidget(QLabel("Username:"), 1, 0)
-        self.usernameInput = QLineEdit(self)
-        self.usernameInput.setPlaceholderText("Enter your username...")
-        self.usernameInput.setStyleSheet("background-color: #333; color: white;")
-        grid.addWidget(self.usernameInput, 1, 1)
+        grid.addWidget(QLabel("First Name:"), 1, 0)
+        self.firstNameInput = QLineEdit(self)
+        self.firstNameInput.setPlaceholderText("Enter your first name...")
+        self.firstNameInput.setStyleSheet("background-color: #FFF; color: #333; padding: 10px;")
+        grid.addWidget(self.firstNameInput, 1, 1)
 
-        grid.addWidget(QLabel("Email:"), 2, 0)
+        grid.addWidget(QLabel("Last Name:"), 2, 0)
+        self.lastNameInput = QLineEdit(self)
+        self.lastNameInput.setPlaceholderText("Enter your last name...")
+        self.lastNameInput.setStyleSheet("background-color: #FFF; color: #333; padding: 10px;")
+        grid.addWidget(self.lastNameInput, 2, 1)
+
+        grid.addWidget(QLabel("Email:"), 3, 0)
         self.emailInput = QLineEdit(self)
         self.emailInput.setPlaceholderText("Enter your email...")
-        self.emailInput.setStyleSheet("background-color: #333; color: white;")
-        grid.addWidget(self.emailInput, 2, 1)
+        self.emailInput.setStyleSheet("background-color: #FFF; color: #333; padding: 10px;")
+        grid.addWidget(self.emailInput, 3, 1)
 
-        grid.addWidget(QLabel("Password:"), 3, 0)
-        self.passwordInput = QLineEdit(self)
-        self.passwordInput.setPlaceholderText("Enter your password...")
-        self.passwordInput.setStyleSheet("background-color: #333; color: white;")
-        self.passwordInput.setEchoMode(QLineEdit.Password)
-        grid.addWidget(self.passwordInput, 3, 1)
+        grid.addWidget(QLabel("Monthly Take-home Pay:"), 4, 0)
+        self.salaryInput = QLineEdit(self)
+        self.salaryInput.setPlaceholderText("Enter your salary...")
+        self.salaryInput.setStyleSheet("background-color: #FFF; color: #333; padding: 10px;")
+        grid.addWidget(self.salaryInput, 4, 1)
 
-        saveButton = QPushButton("Save Settings", self)
-        saveButton.setStyleSheet("background-color: #555; color: white;")
+        saveButton = QPushButton("Save Information", self)
+        saveButton.setStyleSheet("background-color: #4CAF50; color: white; padding: 10px;")
         saveButton.clicked.connect(self.saveSettings)
-        grid.addWidget(saveButton, 4, 0)
+        grid.addWidget(saveButton, 5, 0, 1, 2)
 
         resetButton = QPushButton("Reset Settings", self)
-        resetButton.setStyleSheet("background-color: #555; color: white;")
+        resetButton.setStyleSheet("background-color: #FF9800; color: white; padding: 10px;")
         resetButton.clicked.connect(self.resetSettings)
-        grid.addWidget(resetButton, 4, 1)
+        grid.addWidget(resetButton, 6, 0, 1, 2)
 
         backButton = QPushButton("Back to Dashboard", self)
-        backButton.setStyleSheet("background-color: #FF5722; color: white;")
+        backButton.setStyleSheet("background-color: #F44336; color: white; padding: 10px;")
         backButton.clicked.connect(self.backToDashboard)
-        grid.addWidget(backButton, 5, 0, 1, 2)
+        grid.addWidget(backButton, 7, 0, 1, 2)
 
     def saveSettings(self):
-        username = self.usernameInput.text()
+        first_name = self.firstNameInput.text()
+        last_name = self.lastNameInput.text()
         email = self.emailInput.text()
-        password = self.passwordInput.text()
+        salary = self.salaryInput.text()
 
-        if username and email and password:
-            QMessageBox.information(self, "Settings Saved", f"Settings saved for user: {username}.")
+        if first_name and last_name and email and salary:
+            QMessageBox.information(self, "Settings Saved", f"Settings saved for user: {first_name} {last_name}.")
         else:
             QMessageBox.warning(self, "Input Error", "Please fill in all fields.")
 
     def resetSettings(self):
-        self.usernameInput.clear()
+        self.firstNameInput.clear()
+        self.lastNameInput.clear()
         self.emailInput.clear()
-        self.passwordInput.clear()
+        self.salaryInput.clear()
         QMessageBox.information(self, "Settings Reset", "User settings have been reset.")
 
     def backToDashboard(self):
-        from dashboard_screen import DashboardScreen  # Local import to avoid circular dependency
-        self.destroy()  # Close the ExpenseTrackingScreen window
-        DashboardScreen().mainloop()  # Open the DashboardScreen
+            self.close()
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

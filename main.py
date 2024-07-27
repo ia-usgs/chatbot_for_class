@@ -7,6 +7,7 @@ import sqlite3
 from register_screen import RegisterScreen
 from dashboard_screen import DashboardScreen
 from Forgot_Password import ForgotPasswordScreen
+from AdminScreen import AdminScreen  # Make sure to create this class
 
 class ChatbotGUI(tk.Tk):
     def __init__(self):
@@ -24,11 +25,9 @@ class ChatbotGUI(tk.Tk):
         self.columnconfigure(0, weight=1)
         self.rowconfigure(0, weight=1)
 
-        # Title
         title_label = ttk.Label(mainframe, text="Login to your account", font=("Helvetica", 20, "bold"), style='Title.TLabel')
         title_label.grid(column=1, row=0, columnspan=2, pady=20)
 
-        # Login Labels
         username_label = ttk.Label(mainframe, text="Username", font=("Helvetica", 12), style='Label.TLabel')
         username_label.grid(column=1, row=1, sticky=tk.W, pady=5)
         self.username = ttk.Entry(mainframe, width=25)
@@ -39,15 +38,12 @@ class ChatbotGUI(tk.Tk):
         self.password = ttk.Entry(mainframe, width=25, show="*")
         self.password.grid(column=2, row=2, sticky=(tk.W, tk.E))
 
-        # Login Button
         login_button = ttk.Button(mainframe, text="Login", command=self.login, style='Accent.TButton')
         login_button.grid(column=2, row=3, sticky=(tk.W, tk.E), pady=20)
 
-        # Register Button
         register_button = ttk.Button(mainframe, text="Register", command=self.show_register_screen)
         register_button.grid(column=2, row=4, sticky=(tk.W, tk.E), pady=5)
 
-        # Forgot Password Button
         forgot_password_button = ttk.Button(mainframe, text="Forgot Password", command=self.show_forgot_password_screen)
         forgot_password_button.grid(column=2, row=5, sticky=(tk.W, tk.E), pady=5)
 
@@ -55,16 +51,10 @@ class ChatbotGUI(tk.Tk):
         username = self.username.get()
         password = self.password.get()
 
-        # Connect to the database
-        conn = sqlite3.connect('users.db')
-        cursor = conn.cursor()
-
-        # Query the database for the username
-        cursor.execute('SELECT * FROM users WHERE username = ?', (username,))
-        result = cursor.fetchone()
-    def login(self):
-        username = self.username.get()
-        password = self.password.get()
+        # Check for admin login
+        if username == "admin" and password == "admin1":
+            self.show_admin_screen()
+            return
 
         # Connect to the database
         conn = sqlite3.connect('users.db')
@@ -91,17 +81,22 @@ class ChatbotGUI(tk.Tk):
             messagebox.showerror("Error", "Invalid username or password")
 
         conn.close()
+
     def show_register_screen(self):
         self.withdraw()
         RegisterScreen(self).mainloop()
 
     def show_forgot_password_screen(self):
-        self.destroy()
-        ForgotPasswordScreen().mainloop()
+        self.withdraw()
+        ForgotPasswordScreen(self).mainloop()
 
     def show_dashboard_screen(self):
         self.destroy()
         DashboardScreen().mainloop()
+
+    def show_admin_screen(self):
+        self.destroy()
+        AdminScreen().mainloop()
 
 if __name__ == "__main__":
     app = ChatbotGUI()
