@@ -9,7 +9,7 @@ class ChatBot(tk.Tk):
         super().__init__()
         self.parent = parent
         self.initUI()
-        self.client = Groq(api_key="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")
+        self.client = Groq(api_key="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")
         self.model = "llama3-8b-8192"
         self.messages = []
 
