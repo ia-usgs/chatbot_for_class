@@ -2,6 +2,7 @@ import os
 import tkinter as tk
 from tkinter import ttk, scrolledtext, messagebox
 import csv
+import pandas as pd
 from groq import Groq
 
 class ChatBot(tk.Tk):
@@ -9,8 +10,12 @@ class ChatBot(tk.Tk):
         super().__init__()
         self.parent = parent
         self.initUI()
-        self.client = Groq(api_key="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")
-        self.model = "llama3-8b-8192"
+        try:
+            self.client = Groq(api_key="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")
+            self.model = "llama3-8b-8192"
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to initialize Groq client: {e}")
+            self.destroy()
         self.messages = []
 
     def initUI(self):
@@ -117,26 +122,13 @@ class ChatBot(tk.Tk):
             return f"Error: {e}"
 
     def get_income(self):
-        try:
-            with open('budget.csv', 'r') as file:
-                reader = csv.DictReader(file)
-                total_income = sum(float(row['Income']) for row in reader)
-            return f"Your income is: ${total_income:.2f}"
-        except FileNotFoundError:
-            return "Error: budget.csv not found"
-        except Exception as e:
-            return f"Error: {e}"
+        df = pd.read_csv('budget.csv', header=None)
+        return df.iloc[:, 0].values[0]
+
 
     def get_expenses(self):
-        try:
-            with open('budget.csv', 'r') as file:
-                reader = csv.DictReader(file)
-                total_expenses = sum(float(row['Expenses']) for row in reader)
-            return f"Your expenses are: ${total_expenses:.2f}"
-        except FileNotFoundError:
-            return "Error: budget.csv not found"
-        except Exception as e:
-            return f"Error: {e}"
+        df = pd.read_csv('budget.csv', header=None)
+        return df.iloc[:, 1].values[0]
 
     def show_help(self):
         help_text = """

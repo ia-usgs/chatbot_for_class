@@ -70,6 +70,10 @@ class BudgetManagementScreen(tk.Tk):
             income = float(self.income_input.get())
             expenses = float(self.expense_input.get())
 
+            with open('budget.csv', 'a', newline='') as budget_file:
+                writer = csv.writer(budget_file)
+                writer.writerow([income, expenses])
+
             self.income_cursor.execute("INSERT INTO income (amount) VALUES (?)", (income,))
             self.income_conn.commit()
 
@@ -84,6 +88,7 @@ class BudgetManagementScreen(tk.Tk):
         except ValueError:
             messagebox.showerror("Error", "Invalid input. Please enter valid numbers for income and expenses.")
         except Exception as e:
+            messagebox.showerror("Error", f"An error occurred: {e}")
             messagebox.showerror("Error", f"An error occurred: {e}")
 
     def get_financial_advice(self, income, expenses):
